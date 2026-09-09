@@ -13,13 +13,21 @@ async function getApp() {
 
   // Database
   // Use AZURE_COSMOS_CONNECTIONSTRING if available, otherwise fall back to MONGODB_URI
-  const mongoUri = process.env.AZURE_COSMOS_CONNECTIONSTRING || process.env.MONGODB_URI; // For App Service, change to process.env.AZURE_COSMOS_CONNECTIONSTRING || process.env.MONGODB_URI;
+  const mongoUri = process.env.AZURE_COSMOS_CONNECTIONSTRING || process.env.MONGODB_URI;
 
-  mongoose.connect(mongoUri).then(() => {
+  if (!mongoUri) {
+    throw new Error(
+      'Missing database connection string. Set AZURE_COSMOS_CONNECTIONSTRING or MONGODB_URI.'
+    );
+  }
+
+  try {
+    await mongoose.connect(mongoUri);
     console.log('Connected to database');
-  }).catch((err) => {
+  } catch (err) {
     console.error('Error connecting to database:', err);
-  });
+    throw err;
+  }
 
   var app = express();
 
